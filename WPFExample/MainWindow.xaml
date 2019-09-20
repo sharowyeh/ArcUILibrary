@@ -7,23 +7,48 @@
         xmlns:arcui="clr-namespace:WPFArcUILibrary;assembly=WPFArcUILibrary"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
+    <Window.Resources>
+        <local:StringToDoubleConverter x:Key="StringToDoubleConverter"/>
+    </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="50*"/>
             <ColumnDefinition Width="50*"/>
         </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="70*"/>
-            <RowDefinition Height="30*"/>
-        </Grid.RowDefinitions>
-        <Grid Grid.Column="0">
-            <arcui:ArcLine StartAngle="-100" EndAngle="140" Radius="60" ArcWidth="20"
-                           FillLineRatio="0.7" AnimationTime="0"
-                           Foreground="SteelBlue" Background="Black"/>
-        </Grid>
-        <Grid Grid.Column="1">
+        
+        <StackPanel Grid.Column="0" Orientation="Vertical">
+            <arcui:ArcLine x:Name="DemoArcLine"
+                           StartAngle="-140" EndAngle="100" Radius="60" ArcWidth="20"
+                           FillLineRatio="{Binding ElementName=ArcLineFillLineRatio, Path=Text, Converter={StaticResource StringToDoubleConverter}}"
+                           AnimationTime="{Binding ElementName=ArcLineAnimationTime, Path=Text}"
+                           Foreground="SteelBlue" Background="Black"
+                           MinHeight="200"/>
+            <StackPanel Orientation="Horizontal">
+                <Label Content="MeshVertexCount(OuterArcLength):"/>
+                <TextBlock Text="{Binding ElementName=DemoArcLine, Path=MeshVertexCount}" VerticalAlignment="Center"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label Content="FillLineRatio :"/>
+                <TextBox x:Name="ArcLineFillLineRatio" Text="0.7" VerticalAlignment="Center"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label Content="LineLength:"/>
+                <TextBlock Text="{Binding ElementName=DemoArcLine, Path=LineLength}" VerticalAlignment="Center"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label Content="AnimationTime :"/>
+                <TextBox x:Name="ArcLineAnimationTime" Text="1000" VerticalAlignment="Center"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label Content="AnimatedLineLength:"/>
+                <TextBlock Text="{Binding ElementName=DemoArcLine, Path=AnimatedLineLength}" VerticalAlignment="Center"/>
+            </StackPanel>
+        </StackPanel>
+        
+        <StackPanel Grid.Column="1" Orientation="Vertical">
             <arcui:ArcSlider StartAngle="-45" EndAngle="135" Radius="70" ArcWidth="20"
-                             Foreground="DimGray"/>
-        </Grid>
+                             Foreground="DimGray"
+                             MinHeight="200"/>
+        </StackPanel>
     </Grid>
 </Window>
