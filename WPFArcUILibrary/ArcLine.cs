@@ -20,12 +20,11 @@ namespace WPFArcUILibrary
 
         #region Dependency properties for XAML styling and animation, animation behavior is implemented in property changed callback 
 
+        /// <summary>
+        /// LineLength directly result from FillLineRatio
+        /// </summary>
         public static readonly DependencyProperty LineLengthProperty = DependencyProperty.Register(
             "LineLength", typeof(double), typeof(ArcLine),
-            new FrameworkPropertyMetadata(0.0, FrameworkPropertyMetadataOptions.AffectsRender));
-
-        public static readonly DependencyProperty AnimatedLineLengthProperty = DependencyProperty.Register(
-            "AnimatedLineLength", typeof(double), typeof(ArcLine),
             new FrameworkPropertyMetadata(0.0, FrameworkPropertyMetadataOptions.AffectsRender,
                 new PropertyChangedCallback((sender, e) =>
                 {
@@ -33,21 +32,25 @@ namespace WPFArcUILibrary
                     if ((double)e.NewValue == (double)e.OldValue)
                         return;
                     var inst = sender as ArcLine;
-                    if (inst.LineLength == (double)e.NewValue)
+                    if (inst.AnimatedLineLength == (double)e.NewValue)
                         return;
-                    /// If there has animation setting, fire animation for LineLength property 
-                    if (inst.AnimationTime > 0 && inst.storyBoard != null && inst.lineLengthAnimation != null)
+                    /// If there has animation setting, fire animation for AnimatedLineLength property 
+                    if (inst.storyBoard != null && inst.lineLengthAnimation != null)
                     {
-                        inst.lineLengthAnimation.From = (double)e.OldValue;
+                        /// Set double animation from previous LineLength or AnimatedLineLength
+                        //inst.lineLengthAnimation.From = (double)e.OldValue;
+                        inst.lineLengthAnimation.From = inst.AnimatedLineLength;
                         inst.lineLengthAnimation.To = (double)e.NewValue;
                         inst.storyBoard.Begin();
                     }
-                    /// Otherwise change LineLength directly
-                    else
-                    {
-                        inst.LineLength = (double)e.NewValue;
-                    }
                 })));
+
+        /// <summary>
+        /// LineLength in animation effects
+        /// </summary>
+        public static readonly DependencyProperty AnimatedLineLengthProperty = DependencyProperty.Register(
+            "AnimatedLineLength", typeof(double), typeof(ArcLine),
+            new FrameworkPropertyMetadata(0.0, FrameworkPropertyMetadataOptions.AffectsRender));
 
         public static readonly DependencyProperty AnimationTimeProperty = DependencyProperty.Register(
             "AnimationTime", typeof(double), typeof(ArcLine),
@@ -62,10 +65,7 @@ namespace WPFArcUILibrary
                 }),
                 new CoerceValueCallback((sender, e) =>
                 {
-                    if ((double)e < 0)
-                        return 0;
-                    else
-                        return e;
+                    return ((double)e < 0) ? 0 : e;
                 })));
 
         public static readonly DependencyProperty FillLineRatioProperty = DependencyProperty.Register(
@@ -77,12 +77,8 @@ namespace WPFArcUILibrary
                     if ((double)e.NewValue == (double)e.OldValue)
                         return;
                     var inst = sender as ArcLine;
-                    /// If there has animation setting, use AnimatedLineLength for LineLength property 
-                    if (inst.AnimationTime > 0 && inst.storyBoard != null && inst.lineLengthAnimation != null)
-                        inst.AnimatedLineLength = (double)e.NewValue * inst.MeshVertexCount;
-                    /// Otherwise change LineLength directly
-                    else
-                        inst.LineLength = (double)e.NewValue * inst.MeshVertexCount;
+                    /// If there has animation setting, change LineLength property also affect AnimatedLineLength in animation
+                    inst.LineLength = (double)e.NewValue * inst.MeshVertexCount;
                 })));
 
         #endregion
@@ -116,9 +112,9 @@ namespace WPFArcUILibrary
             get { return (double)GetValue(AnimationTimeProperty); }
             set { SetValue(AnimationTimeProperty, value); }
         }
-        
+
         /// <summary>
-        /// Length ratio of arc line will be drawn, it changes AnimatedLineLength or LineLength denpends on AnimationTime property<para></para>
+        /// Length ratio of arc line will be drawn, it changes LineLength and AnimatedLineLength denpends on AnimationTime property<para></para>
         /// If value is 1, drawing line length will be MeshVertexCount(inherited from ArcVisual)
         /// </summary>
         public double FillLineRatio
@@ -129,7 +125,8 @@ namespace WPFArcUILibrary
 
         protected override void OnRender(DrawingContext drawingContext)
         {
-            updateMeshGeometry(1, LineLength);
+            /// Refer to AnimatedLineLength to render mesh
+            updateMeshGeometry(1, AnimatedLineLength);
 
             base.OnRender(drawingContext);
         }
@@ -180,7 +177,7 @@ namespace WPFArcUILibrary
             /// Binding animation's target property to this
             lineLengthAnimation.SetValue(Storyboard.TargetProperty, this);
             /// Binding target property's property to LineLengthProperty
-            lineLengthAnimation.SetValue(Storyboard.TargetPropertyProperty, new PropertyPath(ArcLine.LineLengthProperty));
+            lineLengthAnimation.SetValue(Storyboard.TargetPropertyProperty, new PropertyPath(ArcLine.AnimatedLineLengthProperty));
             storyBoard = new Storyboard();
             storyBoard.Children.Add(lineLengthAnimation);
         }

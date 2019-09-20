@@ -194,14 +194,14 @@ namespace WPFArcUILibrary
         }
 
         /// <summary>
-        /// Numbers of visual's mesh vertex which will be drawn for a arc visual, <para></para>
-        /// Default mesh vertex value is ArcLength if greater(included) then 100.
+        /// Numbers of visual's mesh vertex which will be drawn for a arc visual. <para></para>
         /// Notice: Large vertex count can gets more smooth curve but also increases computing effort.
+        ///         Default mesh vertex value is OuterArcLength (not ArcLength because of small radius with large ArcWidth).
         /// </summary>
         public double MeshVertexCount
         {
-            get { return (this.ArcLength > 100) ? this.ArcLength : 100; }
-            //get { return this.ArcLength / 2; }
+            get { return this.OuterArcLength; }
+            //get { return (this.ArcLength > 100) ? this.ArcLength : 100; }
         }
 
         /// <summary>
